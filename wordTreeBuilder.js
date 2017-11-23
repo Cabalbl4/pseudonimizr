@@ -18,6 +18,20 @@ class Branch {
         Object.freeze(this);
     }
     
+    _serialize() {
+        let self = this;
+        const result = {
+            letter: self.letter,
+            childs: {};
+        };
+        
+        for(let letter in this.childs) {
+          result.childs[letter] = this.childs[letter]._serialize();
+        };
+        
+        return result;
+    }
+    
     match(wordPart) {
         if(wordPart === '') {
             return false;
@@ -71,11 +85,36 @@ class Branch {
         }
     };
 }
+
+Branch.fromSerialized = (jsonObj) => {
+    const result = new Branch(jsonObj.letter);
+    for(let letter in jsonObj.childs) {
+      result.childs[letter] = Branch.fromSerialized(jsonObj.childs[letter]);   
+    }
+    return result;
+};
+    
 class WordTreeBuilder {
     constructor() {
         this.forrest = {};
         this.delim = '\n';
         this.wordCount = 0;
+    }
+    
+    serialize() {
+        const self = this;
+        const result = {
+           forrest: {},
+           delim: this.delim,
+           wordCount: this.wordCount
+        }; 
+        
+        for(let letter in this.forrest) {
+           result.forrest[letter] =
+            this.forrest[letter]._serialize();
+        };
+        
+        return result;
     }
     
     propose(length) {
@@ -125,5 +164,15 @@ class WordTreeBuilder {
     };
     
 } 
+
+WordTreeBuilder.fromSerialized = (jsonObj) => {
+    const result = new WordTreeBuilder();
+    result.delim = jsonObj.delim;
+    result.wordCount = jsonObj.wordCount;
+    for(let letter in jsonObj.forrest) {
+        result.forrest[letter] = new Branch.fromSerialized(jsonObj.forrest[letter]);
+    };
+    return result;
+};
 
 module.exports = WordTreeBuilder;

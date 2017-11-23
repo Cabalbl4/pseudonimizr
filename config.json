@@ -1,5 +1,8 @@
 {
     "fuzzyLevel" : 0,
     "html_remove_script" : false,
-    "treeRandomize" : true
+    "treeRandomize" : true,
+    "server" : {
+        "port" : 7788
+    }
 }
