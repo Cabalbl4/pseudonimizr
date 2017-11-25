@@ -57,8 +57,6 @@ Note. There is an empty dictionary *ZZ*. If you use it as the only language in L
     "fuzzyLevel" : 0,
     // Remove inline script instead of randomizing it
     "html_remove_script" : false,
-    // Try only those languages for auto-detect. At least one should be present
-    "autoDetectableLanguages" : ["DE","GB","HU" ...]
 }
 
 ```

@@ -9,19 +9,22 @@ class AnonimizationWorker extends require('event') {
     }
 
     onDone(anonDataString) {
-
+        this.runner.kill();
+        this.emit('done', anonDataString);
     }
 
     onError(e) {
-
+        this.runner.kill();
+        console.log(e);
+        this.emit('error', e);
     }
 
     parse(what) {
         this._what = what;
-        this.run();
+        this._run();
     }
 
-    run() {
+    _run() {
         if(this.runner) {
             throw new Error('Runner in progress');
         }
