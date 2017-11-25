@@ -3,7 +3,7 @@ const inMemoryCache = {};
 const CONFIG = Object.freese(require('./config').server);
 const server = require('express')();
 
-server.get('/', function (req, res) {
+server.post('/', function (req, res) {
   res.send('Hello World!');
 });
 

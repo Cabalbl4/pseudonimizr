@@ -67,7 +67,7 @@ class EducationWorker extends require('events') {
     }).on('error', this.onError)
     .on('message', this.onDone)
     .on('exit', ()=>{
-      console.log('Worker done');
+      console.log('EducationWorker done');
       this.runner = null;
     })
   }
