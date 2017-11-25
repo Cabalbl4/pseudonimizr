@@ -57,6 +57,26 @@ Note. There is an empty dictionary *ZZ*. If you use it as the only language in L
     "fuzzyLevel" : 0,
     // Remove inline script instead of randomizing it
     "html_remove_script" : false,
+    server: {
+        // Port for service mode
+        port: 7766
+    }
 }
 
 ```
+
+#Usage as a service
+
+```
+node service.js
+```
+
+Will listen to port, specified in config. Will keep dictionaries in cache for faster access.
+### Requires:
+#### Headers: 
+*languages* - same as LANGS param, missing header will be treated as AUTO
+*mode* - same as *format* param
+Body is the plain text file
+
+Successful call will return anonimised document and status 200;
+Non 200 status means error (400 - bad parameters, 500 - other problems)
