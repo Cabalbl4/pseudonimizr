@@ -4,5 +4,7 @@
     "treeRandomize" : true,
     "server" : {
         "port" : 7788
-    }
+    },
+    "autoDetectableLanguages":
+    ["DE", "GB", "SK", "HU", "ES"]
 }

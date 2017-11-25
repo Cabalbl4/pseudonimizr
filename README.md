@@ -56,7 +56,9 @@ Note. There is an empty dictionary *ZZ*. If you use it as the only language in L
     // Fuzzy search level. Describes how much a given word can derive from its analogs. 0 - no fuzzy search, 1+ adds more fuzziness
     "fuzzyLevel" : 0,
     // Remove inline script instead of randomizing it
-    "html_remove_script" : false
+    "html_remove_script" : false,
+    // Try only those languages for auto-detect. At least one should be present
+    "autoDetectableLanguages" : ["DE","GB","HU" ...]
 }
 
 ```
