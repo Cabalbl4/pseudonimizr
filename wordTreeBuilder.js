@@ -22,7 +22,7 @@ class Branch {
         let self = this;
         const result = {
             letter: self.letter,
-            childs: {};
+            childs: {},
         };
         
         for(let letter in this.childs) {

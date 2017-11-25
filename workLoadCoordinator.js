@@ -14,6 +14,7 @@ class WorkloadCoordinator {
      * @return {Promise} promise to get tree if local files exist
      */
     getTree(langArray) {
+        console.log('getTree')
         return new Promise((resolve, reject) => {
             const hash = langArray.sort().join('|').toUpperCase();
             if(this.treeCache[hash]) {
@@ -26,15 +27,15 @@ class WorkloadCoordinator {
                 this.treeCache[hash] = tree;
                 resolve(tree);
             });
-            worker.on('error', reject)
+            worker.on('error', reject);
+            worker.run();
         });
     };
 
     _getSupportedDictsArray() {
-        fs.readdirSync('./dicts');
+        const files = fs.readdirSync('./dicts');
         const result = [];
             files.forEach(file => {
-                threads++;
                 if(file[0] !== '.') {
                     result.push(file);
                 }});
@@ -46,6 +47,7 @@ class WorkloadCoordinator {
             const worker = new AnonimizationWorker(tree, this.options, mode);
             worker.on('done', resolve);
             worker.on('error', reject);
+            //console.log("ITYPE" ,typeof input)
             worker.parse(input)
         });
     }
@@ -62,15 +64,17 @@ class WorkloadCoordinator {
     }
 
     guessLanguageFlow(mode, input) {
+        console.log('guess language');
         return new Promise((resolve, reject) => {
             const allLangs = this._getSupportedDictsArray();
             let runners = 0;
-            let bestScore = 0;
+            let bestScore = -1;
             let dataTotal = '';
-            for(lang in allLangs) {
-                let runner = new Promise((resolve, reject)=>{
+            for(let lang of allLangs) {
+               // let runner = new Promise((resolve, reject)=>{
                     runners++;
-                    this.getTree(langs).then((tree) => {
+                    this.getTree([lang]).then((tree) => {
+                        
                         this.pseudonimize(tree, mode, input).then((data) => {
                             runners--;
                             if(data.score > bestScore) {
@@ -80,10 +84,16 @@ class WorkloadCoordinator {
                             if(runners === 0) {
                                 resolve(dataTotal);
                             }
-                        }).catch(reject);
-                                }).catch(reject);
+                        }).catch((e)=>{
+                            console.log(e);
+                            reject(e);
+                        });
+                                }).catch((e)=>{
+                                    console.log(e);
+                                    reject(e);
+                                });
         
-                });
+                //});
     
     
             };

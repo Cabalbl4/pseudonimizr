@@ -14,12 +14,15 @@ const spawn = require('threads').spawn;
 
 class EducationWorker extends require('events') {
   constructor(languagesArray) {
+     super();
      this.languages = languagesArray;
      this.runner = null;
   }
 
   onDone(wordTreeSerialized) {
+  //  console.log(this, this.runner)
       this.runner.kill();
+      console.log('Education done');
       this.emit('done', require('../wordTreeBuilder')
           .fromSerialized(wordTreeSerialized));
   }
@@ -32,12 +35,16 @@ class EducationWorker extends require('events') {
   }
 
   run() {
+    console.log('run!')
+
+
     if(this.runner) {
       throw 'runner in progress!'
     };
-
-    this.runner = spawn(function(input, done) {
-        const WordTreeBuilder = require(input.dir+'../wordTreeBuilder');
+    
+    this.runner = (() => spawn(function(input, done) {
+        console.log('Education runner')
+        const WordTreeBuilder = require(input.dir+'/../wordTreeBuilder');
         const currentTree = new WordTreeBuilder();
         let activeReaders = 0;
         for(let lang of input.langs) {
@@ -52,20 +59,25 @@ class EducationWorker extends require('events') {
                 });
 
         lineReader.on('close', ()=>{
+          
                     activeReaders--;
+                    console.log("Active readers", activeReaders)
                     if(activeReaders !==0) {
                        return;
                     };
                     done(currentTree.serialize());
                 });//on close
           }
-    });
+    }))();
 
-    this.runner().send({
+    this.runner.send({
       dir: __dirname,
       langs: this.languages
-    }).on('error', this.onError)
-    .on('message', this.onDone)
+    })
+    .on('message', this.onDone.bind(this))
+    
+    .on('error', this.onError.bind(this))
+    
     .on('exit', ()=>{
       console.log('EducationWorker done');
       this.runner = null;
