@@ -55,7 +55,7 @@ class Branch {
     
     walk(length, delim) {
         if(length === 1) return this.letter;
-        const realChilds = Object.values(this.childs).filter( child => child.letter !== delim );
+        const realChilds = Object.keys(this.childs).map(e => this.childs[e]).filter( child => child.letter !== delim );
         if(! realChilds.length) {
           return null;  
         } 
