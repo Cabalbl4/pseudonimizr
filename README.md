@@ -74,8 +74,9 @@ node service.js
 Will listen to port, specified in config. Will keep dictionaries in cache for faster access.
 ### Requires:
 #### Headers: 
-*languages* - same as LANGS param, missing header will be treated as AUTO
-*mode* - same as *format* param
+**languages** - same as LANGS param, missing header will be treated as AUTO
+
+**mode** - same as *format* param
 Body is the plain text file
 
 Successful call will return anonimised document and status 200;
