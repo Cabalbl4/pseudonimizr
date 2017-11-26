@@ -77,7 +77,8 @@ Will listen to port, specified in config. Will keep dictionaries in cache for fa
 **languages** - same as LANGS param, missing header will be treated as AUTO
 
 **mode** - same as *format* param
-Body is the plain text file
+
+Body is the desired data to anonimize
 
 Successful call will return anonimised document and status 200;
 Non 200 status means error (400 - bad parameters, 500 - other problems)
