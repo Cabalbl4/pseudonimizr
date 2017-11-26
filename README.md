@@ -57,6 +57,8 @@ Note. There is an empty dictionary *ZZ*. If you use it as the only language in L
     "fuzzyLevel" : 0,
     // Remove inline script instead of randomizing it
     "html_remove_script" : false,
+    // Will use words from language instead of random sequences in substitution
+    treeRandomize: true,
     server: {
         // Port for service mode
         port: 7766
