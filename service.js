@@ -1,13 +1,14 @@
 // Pre-educated tree cache
-const CONFIG = Object.freeze(require('./config').server);
+const CONFIG = Object.freeze(require('./config'));
+const SERVER_CONFIG = Object.freeze(CONFIG.server);
 const server = require('express')();
 const LoadCoordinator = require('./workLoadCoordinator');
 const workLoadCoordinator = new LoadCoordinator(CONFIG);
-const mimeByMode = {
+const mimeByMode = Object.freeze({
   'html' : 'text/html',
   'text' : 'text/plain',
   'csv' : 'text/csv',
-}
+});
 
 
 function rawBody(req, res, next) {
@@ -66,6 +67,6 @@ server.post('/', function (req, res, next) {
 
 });
 
-server.listen(CONFIG.port, function () {
-  console.log('Server listening on port ' + CONFIG.port);
+server.listen(SERVER_CONFIG.port, function () {
+  console.log('Server listening on port ' + SERVER_CONFIG.port);
 });
