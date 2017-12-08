@@ -41,11 +41,11 @@ class AnonimizationWorker extends require('events') {
                 treeRandomize : input.options.treeRandomize });
             let plugin = null;
             switch(mode) {
-                case 'html':
-                    plugin = new (require(input.dir + '/../anonPlugin/html'))(rand, { remove_js: input.config.html_remove_script });
+                case input.MODES.HTML:
+                    plugin = new (require(input.dir + '/../anonPlugin/html'))(rand, { remove_js: input.options.html_remove_script });
                 break;
-                case 'csv':
-                case 'text':
+                case input.MODES.CSV:
+                case input.MODES.TEXT:
                     plugin = new (require(input.dir + '/../anonPlugin/plain'))(rand);
                 break;
                 default:
@@ -64,7 +64,8 @@ class AnonimizationWorker extends require('events') {
             wordTree: this.wordTree.serialize(),
             options: this.options,
             mode: this.mode,
-            what: this._what
+            what: this._what,
+            MODES: AnonimizationWorker.MODES
           })
           .on('message', this.onDone.bind(this))
           .on('error', this.onError.bind(this))
@@ -75,5 +76,11 @@ class AnonimizationWorker extends require('events') {
           })
     }
 }
+
+AnonimizationWorker.MODES = Object.freeze({
+    HTML: 'html',
+    CSV: 'csv',
+    TEXT: 'text',
+})
 
 module.exports = AnonimizationWorker;

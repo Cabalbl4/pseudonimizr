@@ -28,7 +28,7 @@ This is due to:
 From pseudonimizr folder
 
 ```
-node index.js LANGS format input output
+node standalone.js LANGS format input output
 
 ```
 
@@ -41,8 +41,8 @@ node index.js LANGS format input output
 #### Examples
 
 ```
-node index.js DE html index.html anon-index.html
-node index.js DE,GB,ES csv data.csv anon-data.csv
+node standalone.js DE html index.html anon-index.html
+node standalone.js DE,GB,ES csv data.csv anon-data.csv
 
 ```
 

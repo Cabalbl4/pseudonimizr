@@ -7,6 +7,8 @@ const spawn = require('threads').spawn;
  * @constructor
  * @argument {Array} languagesArray array of strings like 
  * [ 'DE', 'HU', 'RU', 'GB' ] etc.
+ * Also, languages array can contain pre-read dictionaries as strings:
+ * ['DE', { code: 'GB' , data: 'raw dict string' }]
  * Emits:
  * done + WordTree
  * error + Error
@@ -48,25 +50,40 @@ class EducationWorker extends require('events') {
         const currentTree = new WordTreeBuilder();
         let activeReaders = 0;
         for(let lang of input.langs) {
-          activeReaders++;          
-          const lineReader = require('readline').createInterface({
-              input: require('fs').createReadStream(input.dir+'/../dicts'+require('path').sep+lang)
-          });
+            activeReaders++;      
+              if(typeof lang === 'string') {    
+                  const lineReader = require('readline').createInterface({
+                      input: require('fs').createReadStream(input.dir+'/../dicts'+require('path').sep+lang)
+                  });
 
-        lineReader.on('line', function (line) {
-                    const word = line.replace(' ', '').replace('\n','').replace('\r','').toUpperCase();
-                    currentTree.add(word);
-                });
+                lineReader.on('line', function (line) {
+                            const word = line.replace(' ', '').replace('\n','').replace('\r','').toUpperCase();
+                            currentTree.add(word);
+                        });
 
-        lineReader.on('close', ()=>{
-          
-                    activeReaders--;
-                    console.log("Active readers", activeReaders)
-                    if(activeReaders !==0) {
-                       return;
-                    };
-                    done(currentTree.serialize());
-                });//on close
+                lineReader.on('close', ()=>{
+                            activeReaders--;
+                            console.log("Active readers", activeReaders)
+                            if(activeReaders !==0) {
+                              return;
+                            };
+                            done(currentTree.serialize());
+                        });//on close
+              } else {
+                // Parse pre-read dictionary
+                // Must not be sync - all readers should start!
+                setTimeout(()=>{
+                  const dataArray = lang.data.split('\n');
+                  for(let strInput of dataArray) {
+                    currentTree.add(strInput);
+                  }
+                  activeReaders--;
+                  if(activeReaders !== 0) {
+                    return;
+                  };
+                  done(currentTree.serialize());
+                },0);
+              } // if
           }
     }))();
 

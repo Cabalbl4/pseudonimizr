@@ -2,7 +2,7 @@
 const CONFIG = Object.freeze(require('./config'));
 const SERVER_CONFIG = Object.freeze(CONFIG.server);
 const server = require('express')();
-const LoadCoordinator = require('./workLoadCoordinator');
+const LoadCoordinator = require('./workLoadCoordinator').WorkloadCoordinator;
 const workLoadCoordinator = new LoadCoordinator(CONFIG);
 const mimeByMode = Object.freeze({
   'html' : 'text/html',

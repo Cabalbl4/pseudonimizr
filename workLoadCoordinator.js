@@ -2,11 +2,43 @@ const fs = require('fs');
 const EducationWorker = require('./workers/educationWorker');
 const AnonimizationWorker = require('./workers/anonimizationWorker');
 
+class PreReadDictionary {
+    constructor(lang, data = '') {
+        
+        if(data && (typeof data !== 'string')) {
+            throw new Error('Data should be string!');
+        }
+        if(typeof lang !== 'string' || lang.length !== 2) {
+            throw new Error('Language code should be string with length of 2!');
+        }
+        this.lang = lang;
+        this.data = data;
+    }
+}
+
+PreReadDictionary.fromFile = (lang, filePath, encoding) => {
+    return new PreReadDictionary(lang, fs.readFileSync(filePath, encoding || 'utf8') );
+}
+
 class WorkloadCoordinator {
     constructor(config) {
         this.treeCache = {};
         this.options = config;
+        
+        // Dictionaries provided by external program.
+        this._savedDicts = {};
     }
+    
+    supportedModes() {
+        return Object.keys(AnonimizationWorker.MODES).map(key =>  AnonimizationWorker.MODES[key]);
+    }
+
+    addDictionary(preReadDictionary) {
+        if(! (preReadDictionary instanceof PreReadDictionary) ) {
+            throw new Error('This function accepts only class PreReadDictionary');
+        };
+        this._savedDicts[preReadDictionary.lang] = preReadDictionary;
+    };
 
     /**
      * Ger educted tree from cache or educate on spot
@@ -21,8 +53,13 @@ class WorkloadCoordinator {
                 resolve(this.treeCache[hash]);
                 return;
             }
+            //Replace already read langs with stored ones
+            const preparedLangsArr = langArray.map((stringLang) =>{
+                return this._savedDicts[stringLang] ? this._savedDicts[stringLang] : stringLang;
+            });
+
             //Educate new tree
-            const worker = new EducationWorker(langArray);
+            const worker = new EducationWorker(preparedLangsArr);
             worker.on('done', (tree) => {
                 this.treeCache[hash] = tree;
                 resolve(tree);
@@ -39,6 +76,9 @@ class WorkloadCoordinator {
                 if(file[0] !== '.') {
                     result.push(file);
                 }});
+        for(let extraLang of this._savedDicts) {
+            result.push(extraLang);
+        }
         return result;
     }
 
@@ -103,4 +143,4 @@ class WorkloadCoordinator {
 
 }
 
-module.exports = WorkloadCoordinator;
+module.exports = { WorkloadCoordinator, PreReadDictionary }
