@@ -76,7 +76,7 @@ class WorkloadCoordinator {
                 if(file[0] !== '.') {
                     result.push(file);
                 }});
-        for(let extraLang of this._savedDicts) {
+        for(let extraLang of Object.keys(this._savedDicts)) {
             result.push(extraLang);
         }
         return result;
