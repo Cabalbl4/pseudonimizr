@@ -46,6 +46,11 @@ This is due to:
 
 # Usage as a module
 
+# install
+```
+npm install --save pseudonimizr
+```
+
 Current module interface:
 ```
 module.exports = {
