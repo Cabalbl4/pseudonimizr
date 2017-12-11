@@ -170,7 +170,7 @@ WordTreeBuilder.fromSerialized = (jsonObj) => {
     result.delim = jsonObj.delim;
     result.wordCount = jsonObj.wordCount;
     for(let letter in jsonObj.forrest) {
-        result.forrest[letter] = new Branch.fromSerialized(jsonObj.forrest[letter]);
+        result.forrest[letter] = Branch.fromSerialized(jsonObj.forrest[letter]);
     };
     return result;
 };

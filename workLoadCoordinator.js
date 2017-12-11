@@ -1,12 +1,46 @@
 const fs = require('fs');
 const EducationWorker = require('./workers/educationWorker');
 const AnonimizationWorker = require('./workers/anonimizationWorker');
+const fullPathExtract = require('./helpers/fullPathExtract');
+
+class PreReadDictionary {
+    constructor(lang, data = '') {
+        
+        if(data && (typeof data !== 'string')) {
+            throw new Error('Data should be string!');
+        }
+        if(typeof lang !== 'string' || lang.length !== 2) {
+            throw new Error('Language code should be string with length of 2!');
+        }
+        this.lang = lang;
+        this.data = data;
+    }
+}
+
+PreReadDictionary.fromFile = (lang, filePath, encoding) => {
+    return new PreReadDictionary(lang, fs.readFileSync(filePath, encoding || 'utf8') );
+}
 
 class WorkloadCoordinator {
     constructor(config) {
         this.treeCache = {};
         this.options = config;
+        
+        // Dictionaries provided by external program.
+        this._savedDicts = {};
+        this.extraDictPaths = fullPathExtract(config.extraDicts || []);
     }
+    
+    supportedModes() {
+        return Object.keys(AnonimizationWorker.MODES).map(key =>  AnonimizationWorker.MODES[key]);
+    }
+
+    addDictionary(preReadDictionary) {
+        if(! (preReadDictionary instanceof PreReadDictionary) ) {
+            throw new Error('This function accepts only class PreReadDictionary');
+        };
+        this._savedDicts[preReadDictionary.lang] = preReadDictionary;
+    };
 
     /**
      * Ger educted tree from cache or educate on spot
@@ -14,15 +48,20 @@ class WorkloadCoordinator {
      * @return {Promise} promise to get tree if local files exist
      */
     getTree(langArray) {
-        console.log('getTree')
+        // console.log('getTree')
         return new Promise((resolve, reject) => {
             const hash = langArray.sort().join('|').toUpperCase();
             if(this.treeCache[hash]) {
                 resolve(this.treeCache[hash]);
                 return;
             }
+            //Replace already read langs with stored ones
+            const preparedLangsArr = langArray.map((stringLang) =>{
+                return this._savedDicts[stringLang] ? this._savedDicts[stringLang] : stringLang;
+            });
+
             //Educate new tree
-            const worker = new EducationWorker(langArray);
+            const worker = new EducationWorker(preparedLangsArr, this.extraDictPaths);
             worker.on('done', (tree) => {
                 this.treeCache[hash] = tree;
                 resolve(tree);
@@ -32,13 +71,19 @@ class WorkloadCoordinator {
         });
     };
 
-    _getSupportedDictsArray() {
-        const files = fs.readdirSync('./dicts');
+    getSupportedDictsArray() {
+        let files = fs.readdirSync('./dicts');
+        for(let pathExtra of this.extraDictPaths) {
+            files = files.concat(fs.readdirSync(pathExtra))
+        }
         const result = [];
             files.forEach(file => {
                 if(file[0] !== '.') {
                     result.push(file);
                 }});
+        for(let extraLang of Object.keys(this._savedDicts)) {
+            result.push(extraLang);
+        }
         return result;
     }
 
@@ -66,7 +111,7 @@ class WorkloadCoordinator {
     guessLanguageFlow(mode, input) {
         console.log('guess language');
         return new Promise((resolve, reject) => {
-            const allLangs = this._getSupportedDictsArray();
+            const allLangs = this.getSupportedDictsArray();
             let runners = 0;
             let bestScore = -1;
             let dataTotal = '';
@@ -103,4 +148,4 @@ class WorkloadCoordinator {
 
 }
 
-module.exports = WorkloadCoordinator;
+module.exports = { WorkloadCoordinator, PreReadDictionary }

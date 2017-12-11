@@ -7,35 +7,41 @@ const spawn = require('threads').spawn;
  * @constructor
  * @argument {Array} languagesArray array of strings like 
  * [ 'DE', 'HU', 'RU', 'GB' ] etc.
+ * Also, languages array can contain pre-read dictionaries as strings:
+ * ['DE', { code: 'GB' , data: 'raw dict string' }]
+ * 
+ * @argument {Array of strings} extraLanguagesPaths - use those optional path alongside of ./dicts
+ * Only absolute paths are accepted!
  * Emits:
  * done + WordTree
  * error + Error
  */
 
 class EducationWorker extends require('events') {
-  constructor(languagesArray) {
+  constructor(languagesArray, extraLanguagesPaths) {
      super();
      this.languages = languagesArray;
      this.runner = null;
+     this.extraLanguagesPaths = extraLanguagesPaths || [];
   }
 
   onDone(wordTreeSerialized) {
   //  console.log(this, this.runner)
       this.runner.kill();
-      console.log('Education done');
+      // console.log('Education done');
       this.emit('done', require('../wordTreeBuilder')
           .fromSerialized(wordTreeSerialized));
   }
 
   onError(err) {
-      console.log('Worker error, terminating');
+      // console.log('Worker error, terminating');
       this.runner.kill();
-      console.log(err);
+      // console.log(err);
       this.emit('error', err);
   }
 
   run() {
-    console.log('run!')
+    // console.log('run!')
 
 
     if(this.runner) {
@@ -43,43 +49,77 @@ class EducationWorker extends require('events') {
     };
     
     this.runner = (() => spawn(function(input, done) {
-        console.log('Education runner')
+        // console.log('Education runner')
+        const fs = require('fs');
+        const path = require('path');
         const WordTreeBuilder = require(input.dir+'/../wordTreeBuilder');
         const currentTree = new WordTreeBuilder();
+        const allPaths = [input.dir+'/../dicts'].concat(input.extraDictPaths);
+        function detectPath(lang) {
+          for(let testPath of allPaths) {
+            if (fs.existsSync(testPath + lang)) {
+              return testPath + lang
+            }
+            if (fs.existsSync(testPath + path.sep + lang)) {
+              return testPath + path.sep + lang;
+            }
+          };
+          throw new Error('Can not find dictionary:' + lang)
+        };
+
+
+
+
         let activeReaders = 0;
         for(let lang of input.langs) {
-          activeReaders++;          
-          const lineReader = require('readline').createInterface({
-              input: require('fs').createReadStream(input.dir+'/../dicts'+require('path').sep+lang)
-          });
+            activeReaders++;      
+              if(typeof lang === 'string') {    
+                  const lineReader = require('readline').createInterface({
+                      input: require('fs').createReadStream(detectPath(lang))
+                  });
 
-        lineReader.on('line', function (line) {
-                    const word = line.replace(' ', '').replace('\n','').replace('\r','').toUpperCase();
-                    currentTree.add(word);
-                });
+                lineReader.on('line', function (line) {
+                            const word = line.replace(' ', '').replace('\n','').replace('\r','').toUpperCase();
+                            currentTree.add(word);
+                        });
 
-        lineReader.on('close', ()=>{
-          
-                    activeReaders--;
-                    console.log("Active readers", activeReaders)
-                    if(activeReaders !==0) {
-                       return;
-                    };
-                    done(currentTree.serialize());
-                });//on close
+                lineReader.on('close', ()=>{
+                            activeReaders--;
+                            // console.log("Active readers", activeReaders)
+                            if(activeReaders !==0) {
+                              return;
+                            };
+                            done(currentTree.serialize());
+                        });//on close
+              } else {
+                // Parse pre-read dictionary
+                // Must not be sync - all readers should start!
+                setTimeout(()=>{
+                  const dataArray = lang.data.split('\n');
+                  for(let strInput of dataArray) {
+                    currentTree.add(strInput);
+                  }
+                  activeReaders--;
+                  if(activeReaders !== 0) {
+                    return;
+                  };
+                  done(currentTree.serialize());
+                },0);
+              } // if
           }
     }))();
 
     this.runner.send({
       dir: __dirname,
-      langs: this.languages
+      langs: this.languages,
+      extraDictPaths: this.extraLanguagesPaths,
     })
     .on('message', this.onDone.bind(this))
     
     .on('error', this.onError.bind(this))
     
     .on('exit', ()=>{
-      console.log('EducationWorker done');
+      // console.log('EducationWorker done');
       this.runner = null;
     })
   }

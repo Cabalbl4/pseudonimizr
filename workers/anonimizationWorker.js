@@ -11,13 +11,13 @@ class AnonimizationWorker extends require('events') {
 
     onDone(anonDataWithScore) {
        this.runner.kill();
-       console.log('anon', anonDataWithScore);
+       // console.log('anon', anonDataWithScore);
         this.emit('done', anonDataWithScore);
     }
 
     onError(e) {
         this.runner.kill();
-        console.log(e);
+        // console.log(e);
         this.emit('error', e);
     }
 
@@ -41,11 +41,11 @@ class AnonimizationWorker extends require('events') {
                 treeRandomize : input.options.treeRandomize });
             let plugin = null;
             switch(mode) {
-                case 'html':
-                    plugin = new (require(input.dir + '/../anonPlugin/html'))(rand, { remove_js: input.config.html_remove_script });
+                case input.MODES.HTML:
+                    plugin = new (require(input.dir + '/../anonPlugin/html'))(rand, { remove_js: input.options.html_remove_script });
                 break;
-                case 'csv':
-                case 'text':
+                case input.MODES.CSV:
+                case input.MODES.TEXT:
                     plugin = new (require(input.dir + '/../anonPlugin/plain'))(rand);
                 break;
                 default:
@@ -64,16 +64,23 @@ class AnonimizationWorker extends require('events') {
             wordTree: this.wordTree.serialize(),
             options: this.options,
             mode: this.mode,
-            what: this._what
+            what: this._what,
+            MODES: AnonimizationWorker.MODES
           })
           .on('message', this.onDone.bind(this))
           .on('error', this.onError.bind(this))
          
           .on('exit', ()=>{
-            console.log('AnonimizationWorker done');
+            // console.log('AnonimizationWorker done');
             this.runner = null;
           })
     }
 }
+
+AnonimizationWorker.MODES = Object.freeze({
+    HTML: 'html',
+    CSV: 'csv',
+    TEXT: 'text',
+})
 
 module.exports = AnonimizationWorker;

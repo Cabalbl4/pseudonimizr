@@ -2,8 +2,9 @@
 const CONFIG = Object.freeze(require('./config'));
 const SERVER_CONFIG = Object.freeze(CONFIG.server);
 const server = require('express')();
-const LoadCoordinator = require('./workLoadCoordinator');
+const LoadCoordinator = require('./workLoadCoordinator').WorkloadCoordinator;
 const workLoadCoordinator = new LoadCoordinator(CONFIG);
+const processLangs = require('./helpers/processLangs');
 const mimeByMode = Object.freeze({
   'html' : 'text/html',
   'text' : 'text/plain',
@@ -49,7 +50,7 @@ server.post('/', function (req, res, next) {
       return;
     }
 
-    const langsArray = languages.replace(' ', '').toUpperCase().split(',');
+    const langsArray = processLangs(languages.replace(' ', ''));
     promise = workLoadCoordinator.standardFlow(langsArray, mode, data);
   }
 
