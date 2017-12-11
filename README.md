@@ -11,7 +11,7 @@ This is a prototype. It can misbehave and ruin HTML/CSV structure, please check 
 
 ### Before you start
 
-Populate *dicts/* folder with dictionaries (or specify path to them in `extraDicts`. 
+Populate *dicts/* folder with dictionaries (or specify path to them in `extraDicts`). 
 Dictionary is a newline-separated list of words with the name of a country like DE, GB etc
 
 ### Requires
@@ -65,7 +65,7 @@ const optionalConfig = {
 
 const pseudonimizr = require('pseudonimizr').standandalone(optionalConfig); // or just .standalone()
 
-pseodonimizer.process('DE', 'html', '<html>TEST</html>').then((data) => {
+pseudonimizr.process('DE', 'html', '<html>TEST</html>').then((data) => {
     console.log('got anonimized string', data);
 }).catch(e=>console.warn(e));
 
@@ -78,7 +78,7 @@ Add dictionary to memory from a newline separated string
 ```
 pseudonimizr.addDictionaryFromString('RU', 'один\nдва\nтри\n....');
 ```
-#####  addDictionaryFromFile(lang, filePath)
+####  addDictionaryFromFile(lang, filePath)
 Add dictionary from file. Same as `addDictionaryFromString`, but you specify a path as second parameter
 
 #### process(langs, mode, input)
