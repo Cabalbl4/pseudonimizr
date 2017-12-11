@@ -83,7 +83,8 @@ Add dictionary from file. Same as `addDictionaryFromString`, but you specify a p
 
 #### process(langs, mode, input)
 Main async function. Accepts:
-**langs**: a string of comma-separated languages, or array of language strings, or 'AUTO' keyword, or undefined/null
+##### langs
+a string of comma-separated languages, or array of language strings, or 'AUTO' keyword, or undefined/null
 ```
 'DE'
 'DE,GB'
@@ -92,8 +93,10 @@ Main async function. Accepts:
 ```
 
 Null/undefined parameter or 'AUTO' keyword will launch function in language detect mode
-**mode** one of supported format modes. Currently supported are 'text', 'html', 'csv'. Must be explicitly one of those
-**input** utf8 text string with data needed to anonimize
+##### mode
+one of supported format modes. Currently supported are 'text', 'html', 'csv'. Must be explicitly one of those
+##### input
+utf8 text string with data needed to anonimize
 
 This function returns a promise, which either gives anonimized string or is rejected with error
 
