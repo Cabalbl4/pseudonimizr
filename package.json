@@ -1,7 +1,8 @@
 {
   "name": "pseudonimizr",
   "version": "0.0.2",
-  "description": "Pseudo-anonimizer of different formats",
+  "description": "Pseudo-anonymizer of different formats",
+  "keywords": ["anonymity"],
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/mocha --reporter spec",
@@ -9,6 +10,10 @@
     "server" : "node server"
   },
   "author": "Ivan Vokhmin <cabalbl4@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Cabalbl4/pseudonimizr.git"
+  },
   "license": "MIT",
   "dependencies": {
     "chai": "^4.1.2",

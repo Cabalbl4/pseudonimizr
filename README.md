@@ -1,9 +1,9 @@
 # Pseudonimizr
 
-## A tool to make smart anonimization.
+## A tool to make smart anonymization.
 
-This tool intelligently anonimizes data by matching the common used words in selected languages with ones given in input
-This help to anonimize all the data which is sensetive, and leave common messages (Errors etc) untouched
+This tool intelligently anonymizes data by matching the common used words in selected languages with ones given in input
+This help to anonymize all the data which is sensetive, and leave common messages (Errors etc) untouched
 
 ## Disclaimer
 
@@ -66,7 +66,7 @@ const optionalConfig = {
 const pseudonimizr = require('pseudonimizr').standandalone(optionalConfig); // or just .standalone()
 
 pseudonimizr.process('DE', 'html', '<html>TEST</html>').then((data) => {
-    console.log('got anonimized string', data);
+    console.log('got anonymized string', data);
 }).catch(e=>console.warn(e));
 
 ```
@@ -96,9 +96,9 @@ Null/undefined parameter or 'AUTO' keyword will launch function in language dete
 ##### mode
 one of supported format modes. Currently supported are 'text', 'html', 'csv'. Must be explicitly one of those
 ##### input
-utf8 text string with data needed to anonimize
+utf8 text string with data needed to anonymize
 
-This function returns a promise, which either gives anonimized string or is rejected with error
+This function returns a promise, which either gives anonymized string or is rejected with error
 
 #### supportetDicts()
 Show array of dictionaries currently available, like: `['DE','GB','ZZ']`
@@ -143,7 +143,7 @@ Will listen to port, specified in config. Will keep dictionaries in cache for fa
 
 **mode** - same as *format* param
 
-Body is the desired data to anonimize
+Body is the desired data to anonymize
 
-Successful call will return anonimised document and status 200;
+Successful call will return anonymised document and status 200;
 Non 200 status means error (400 - bad parameters, 500 - other problems)
