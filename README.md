@@ -63,7 +63,7 @@ const optionalConfig = {
     fuzzyLevel: 0
 }
 
-const pseudonimizr = require('pseudonimizr').standandalone(optionalConfig); // or just .standalone()
+const pseudonimizr = require('pseudonimizr').standalone(optionalConfig); // or just .standalone()
 
 pseudonimizr.process('DE', 'html', '<html>TEST</html>').then((data) => {
     console.log('got anonymized string', data);
