@@ -11,7 +11,7 @@ This is a prototype. It can misbehave and ruin HTML/CSV structure, please check 
 
 ### Before you start
 
-Populate *dicts/* folder with dictionaries (or specify path to them in `extraDicts`. 
+Populate *dicts/* folder with dictionaries (or specify path to them in `extraDicts`). 
 Dictionary is a newline-separated list of words with the name of a country like DE, GB etc
 
 ### Requires
