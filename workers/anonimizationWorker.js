@@ -11,13 +11,13 @@ class AnonimizationWorker extends require('events') {
 
     onDone(anonDataWithScore) {
        this.runner.kill();
-       console.log('anon', anonDataWithScore);
+       // console.log('anon', anonDataWithScore);
         this.emit('done', anonDataWithScore);
     }
 
     onError(e) {
         this.runner.kill();
-        console.log(e);
+        // console.log(e);
         this.emit('error', e);
     }
 
@@ -71,7 +71,7 @@ class AnonimizationWorker extends require('events') {
           .on('error', this.onError.bind(this))
          
           .on('exit', ()=>{
-            console.log('AnonimizationWorker done');
+            // console.log('AnonimizationWorker done');
             this.runner = null;
           })
     }

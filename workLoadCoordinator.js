@@ -1,6 +1,7 @@
 const fs = require('fs');
 const EducationWorker = require('./workers/educationWorker');
 const AnonimizationWorker = require('./workers/anonimizationWorker');
+const fullPathExtract = require('./helpers/fullPathExtract');
 
 class PreReadDictionary {
     constructor(lang, data = '') {
@@ -27,6 +28,7 @@ class WorkloadCoordinator {
         
         // Dictionaries provided by external program.
         this._savedDicts = {};
+        this.extraDictPaths = fullPathExtract(config.extraDicts || []);
     }
     
     supportedModes() {
@@ -46,7 +48,7 @@ class WorkloadCoordinator {
      * @return {Promise} promise to get tree if local files exist
      */
     getTree(langArray) {
-        console.log('getTree')
+        // console.log('getTree')
         return new Promise((resolve, reject) => {
             const hash = langArray.sort().join('|').toUpperCase();
             if(this.treeCache[hash]) {
@@ -59,7 +61,7 @@ class WorkloadCoordinator {
             });
 
             //Educate new tree
-            const worker = new EducationWorker(preparedLangsArr);
+            const worker = new EducationWorker(preparedLangsArr, this.extraDictPaths);
             worker.on('done', (tree) => {
                 this.treeCache[hash] = tree;
                 resolve(tree);
@@ -69,8 +71,11 @@ class WorkloadCoordinator {
         });
     };
 
-    _getSupportedDictsArray() {
-        const files = fs.readdirSync('./dicts');
+    getSupportedDictsArray() {
+        let files = fs.readdirSync('./dicts');
+        for(let pathExtra of this.extraDictPaths) {
+            files = files.concat(fs.readdirSync(pathExtra))
+        }
         const result = [];
             files.forEach(file => {
                 if(file[0] !== '.') {
@@ -106,7 +111,7 @@ class WorkloadCoordinator {
     guessLanguageFlow(mode, input) {
         console.log('guess language');
         return new Promise((resolve, reject) => {
-            const allLangs = this._getSupportedDictsArray();
+            const allLangs = this.getSupportedDictsArray();
             let runners = 0;
             let bestScore = -1;
             let dataTotal = '';

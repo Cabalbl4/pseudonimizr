@@ -4,9 +4,11 @@
   "description": "Pseudo-anonimizer of different formats",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --reporter spec"
+    "test": "./node_modules/.bin/mocha --reporter spec",
+    "tool": "node tool",
+    "server" : "node server"
   },
-  "author": "Ivan Vokhmin",
+  "author": "Ivan Vokhmin <cabalbl4@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "chai": "^4.1.2",

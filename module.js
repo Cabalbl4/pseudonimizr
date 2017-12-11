@@ -1,16 +1,10 @@
 const PreReadDictionary = require('./workLoadCoordinator').PreReadDictionary;
-
-function processLangs(langs) {
-    if(typeof langs === 'string') {
-        return langs.split(',');
-    } 
-    return langs;
-}
+const processLangs = require('./helpers/processLangs');
 
 // This file wraps pseudonimizr to be used as node.js module
 function initStandalone(optionalConfig) {
     const CONFIG = Object.assign({}, require('./config'), optionalConfig);
-    console.log('USE CONFIG', CONFIG);
+    // console.log('USE CONFIG', CONFIG);
     // This instance stores all caches
     const workLoadCoordinator = new (require('./workLoadCoordinator').WorkloadCoordinator)(CONFIG);
 
@@ -27,12 +21,15 @@ function initStandalone(optionalConfig) {
             if(!(~workLoadCoordinator.supportedModes().indexOf(mode))) {
                 throw new Error( `Mode '${mode}' not supported. List of supported modes '${ workLoadCoordinator.supportedModes().join(',') }'` );
             };
-            // Return a promise
+            // Return a promise to return a string
             if((! langs) || langs === 'AUTO') {
                 return workLoadCoordinator.guessLanguageFlow(mode, input);
             } else {
                 return workLoadCoordinator.standardFlow(processed, mode, input);
             }
+        },
+        supportetDicts() {
+            return workLoadCoordinator.getSupportedDictsArray();
         }
     };
 }
