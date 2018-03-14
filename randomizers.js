@@ -9,11 +9,12 @@ const special = ['\'','"','.',',','!','+','-','{','}','[',']','(',')',
 const spacers = ['\n','\r',' ','\t'];
 
 class BiasedSequenceRandomizer {
-    constructor(educatedWordTree, options) {
+    constructor(educatedWordTree, educatedBlacklist, options) {
         this.bias = {};
         this.maxBias = options.maxBias;
         this.treeRandomize = options.treeRandomize;
         this.tree = educatedWordTree;
+        this.blacklist = educatedBlacklist;
         this.languageAffinity = 0;
     }
 
@@ -60,8 +61,8 @@ class BiasedSequenceRandomizer {
              let result = '';
              for(let i=0; i<phrase.length; i++) {
                  let letter = phrase[i];
-                 if(letter === letter.toLocaleUpperCase()) {
-                   result += substitute[i].toLocaleUpperCase()
+                 if(letter === letter.toUpperCase()) {
+                   result += substitute[i].toUpperCase()
                  } else {
                    result += substitute[i].toLocaleLowerCase();
                  }
@@ -99,8 +100,8 @@ class BiasedSequenceRandomizer {
         }
         const alphabet = "abcdefghijklmnopqrstuvwxyz";
         if(isNaN(char)) {
-            if(char.toLocaleUpperCase() === char) {
-                return alphabet[Math.floor(Math.random() * alphabet.length)].toLocaleUpperCase();
+            if(char.toUpperCase() === char) {
+                return alphabet[Math.floor(Math.random() * alphabet.length)].toUpperCase();
             } else {
                 return alphabet[Math.floor(Math.random() * alphabet.length)];
             }
@@ -108,6 +109,18 @@ class BiasedSequenceRandomizer {
             return Math.floor(Math.random()*10)
         }
     }
+
+    fuzzyMatch(what) {
+        if(this.blacklist.fuzzyMatch(what.toUpperCase() ,this.maxBias)) {
+            return false;
+        }
+        if(this.tree.fuzzyMatch(what.toUpperCase(), this.maxBias)) {
+            return true;
+        }
+
+        return false;
+    }
+
 
     randomize(sequence) {
         if(sequence.length === 0) {
@@ -121,7 +134,7 @@ class BiasedSequenceRandomizer {
             if(this._isSep(sequence[i])) {
                 if(phrase) {
 
-                    if(this.tree.fuzzyMatch(phrase.toLocaleUpperCase(), this.maxBias)) {
+                    if(this.fuzzyMatch(phrase)) {
                         this.languageAffinity += phrase.length;
                         //console.log(phrase);
                         result += phrase;
@@ -137,7 +150,7 @@ class BiasedSequenceRandomizer {
                 result += sequence[i];
             } else if (!isNaN(sequence[i])){
                 if(phrase) {
-                   if(this.tree.fuzzyMatch(phrase.toLocaleUpperCase(), this.maxBias)) {
+                   if(this.fuzzyMatch(phrase)) {
                        //console.log(phrase);
                        this.languageAffinity += phrase.length;
                        result += phrase;
@@ -158,7 +171,7 @@ class BiasedSequenceRandomizer {
         };
 
         if(phrase) {
-                   if(this.tree.fuzzyMatch(phrase.toLocaleUpperCase(), this.maxBias)) {
+                   if(this.fuzzyMatch(phrase)) {
                        //console.log(phrase);
                        this.languageAffinity += phrase.length;
                        result += phrase;

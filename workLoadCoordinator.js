@@ -2,6 +2,11 @@ const fs = require('fs');
 const EducationWorker = require('./workers/educationWorker');
 const AnonimizationWorker = require('./workers/anonimizationWorker');
 const fullPathExtract = require('./helpers/fullPathExtract');
+const WordSetHolder = require('./wordSetHolder');
+const path = require('path');
+const MAX_WORKERS = require('os').cpus().length;
+const logging = require('./logging');
+const logger = () => { return logging.getLogger() };
 
 class PreReadDictionary {
     constructor(lang, data = '') {
@@ -29,6 +34,26 @@ class WorkloadCoordinator {
         // Dictionaries provided by external program.
         this._savedDicts = {};
         this.extraDictPaths = fullPathExtract(config.extraDicts || []);
+        this.blackListPaths = fullPathExtract(config.blackLists || []);
+        this._getTreeRequests = {};
+        this.__workerCount = 0;
+        this.blacklist = this.__educateBlacklist(this.blackListPaths);
+        logger().log('WorkloadCoordinator initialized');
+    }
+
+    __educateBlacklist(paths) {
+        let resultArr = [];
+        logger().log('Populating cross-language blacklist');
+        for(let dpath of paths) {
+            for(let file of fs.readdirSync(dpath)) {
+                const blackListFile = path.join(dpath, file);
+                logger().log(`Adding ${blackListFile} to blacklist`);
+                let lines = fs.readFileSync(blackListFile, 'utf-8')
+                .split('\n');
+                resultArr = resultArr.concat(lines);
+            }
+        }
+        return WordSetHolder.fromSerialized(resultArr);
     }
     
     supportedModes() {
@@ -48,31 +73,51 @@ class WorkloadCoordinator {
      * @return {Promise} promise to get tree if local files exist
      */
     getTree(langArray) {
-        // console.log('getTree')
+        // logger().log('getTree')
         return new Promise((resolve, reject) => {
             const hash = langArray.sort().join('|').toUpperCase();
             if(this.treeCache[hash]) {
-                resolve(this.treeCache[hash]);
-                return;
+                return resolve(this.treeCache[hash]);
             }
+
+            if(! this._getTreeRequests[hash]) {
+                this._getTreeRequests[hash] = [];
+            }
+
+            this._getTreeRequests[hash].push(resolve);
+            if(this._getTreeRequests[hash].length > 1) {
+                return;
+            } 
+
             //Replace already read langs with stored ones
             const preparedLangsArr = langArray.map((stringLang) =>{
                 return this._savedDicts[stringLang] ? this._savedDicts[stringLang] : stringLang;
             });
 
-            //Educate new tree
-            const worker = new EducationWorker(preparedLangsArr, this.extraDictPaths);
-            worker.on('done', (tree) => {
-                this.treeCache[hash] = tree;
-                resolve(tree);
-            });
-            worker.on('error', reject);
-            worker.run();
+            let hit = 0;
+            let educateLater = () => {
+                if(this.__workerCount > MAX_WORKERS) {
+                    logger().log('Worker limit hit, delaying education!');
+                    hit += 1;
+                    return setTimeout(educateLater, hit * 1000);
+                }
+                this.__workerCount += 1;
+                //Educate new tree
+                const worker = new EducationWorker(preparedLangsArr, this.extraDictPaths);
+                worker.on('done', (tree) => {
+                    this.__workerCount -= 1;
+                    this.treeCache[hash] = tree;
+                    this._getTreeRequests[hash].forEach(func => func(tree));
+                });
+                worker.on('error', (err) => { this.__workerCount -= 1; reject(err);});
+                worker.run();
+            }
+            educateLater();
         });
     };
 
     getSupportedDictsArray() {
-        let files = fs.readdirSync('./dicts');
+        let files = fs.existsSync(path.join(__dirname,'/dicts')) ? fs.readdirSync(path.join(__dirname,'/dicts')) : [];
         for(let pathExtra of this.extraDictPaths) {
             files = files.concat(fs.readdirSync(pathExtra))
         }
@@ -88,12 +133,22 @@ class WorkloadCoordinator {
     }
 
     pseudonimize(tree, mode, input) {
+        const self = this;
         return new Promise((resolve, reject) => {
-            const worker = new AnonimizationWorker(tree, this.options, mode);
-            worker.on('done', resolve);
-            worker.on('error', reject);
-            //console.log("ITYPE" ,typeof input)
-            worker.parse(input)
+            function anonLater() {
+                if(self.__workerCount >= MAX_WORKERS) {
+                   // logger().log('Worker max count hit. Delaying anonimization process...')
+                    return setTimeout(anonLater, 5000);
+                }
+                logger().log('Dispatch anonimization process...')
+                self.__workerCount += 1;
+                const worker = new AnonimizationWorker(tree, self.blacklist, self.options, mode);
+                worker.on('done', (result) => {self.__workerCount -= 1; resolve(result)});
+                worker.on('error',  (result) => {self.__workerCount -= 1; reject(result)});
+                //logger().log("ITYPE" ,typeof input)
+                worker.parse(input);
+            };
+            anonLater();
         });
     }
 
@@ -109,12 +164,13 @@ class WorkloadCoordinator {
     }
 
     guessLanguageFlow(mode, input) {
-        console.log('guess language');
+        logger().log('guess language');
         return new Promise((resolve, reject) => {
             const allLangs = this.getSupportedDictsArray();
             let runners = 0;
             let bestScore = -1;
             let dataTotal = '';
+            let winnerLang = '';
             for(let lang of allLangs) {
                // let runner = new Promise((resolve, reject)=>{
                     runners++;
@@ -125,16 +181,18 @@ class WorkloadCoordinator {
                             if(data.score > bestScore) {
                                 bestScore = data.score;
                                 dataTotal = data.data;
+                                winnerLang = lang;
                             }
                             if(runners === 0) {
+                                logger().log(`Detected best lang: ${winnerLang}`);
                                 resolve(dataTotal);
                             }
                         }).catch((e)=>{
-                            console.log(e);
+                            logger().log(e);
                             reject(e);
                         });
                                 }).catch((e)=>{
-                                    console.log(e);
+                                    logger().log(e);
                                     reject(e);
                                 });
         
