@@ -8,7 +8,6 @@ function initStandalone(optionalConfig) {
     // This instance stores all caches
     const workLoadCoordinator = new (require('./workLoadCoordinator').WorkloadCoordinator)(CONFIG);
 
-    
     return {
         addDictionaryFromString(lang, stringData) {
             workLoadCoordinator.addDictionary(new PreReadDictionary(lang, stringData));

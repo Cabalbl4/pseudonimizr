@@ -27,15 +27,14 @@ class EducationWorker extends require('events') {
 
   onDone(wordTreeSerialized) {
   //  console.log(this, this.runner)
-      this.runner.kill();
+      // this.runner.kill();
       // console.log('Education done');
-      this.emit('done', require('../wordTreeBuilder')
-          .fromSerialized(wordTreeSerialized));
+      this.emit('done', wordTreeSerialized);
   }
 
   onError(err) {
       // console.log('Worker error, terminating');
-      this.runner.kill();
+      // this.runner.kill();
       // console.log(err);
       this.emit('error', err);
   }
@@ -48,12 +47,13 @@ class EducationWorker extends require('events') {
       throw 'runner in progress!'
     };
     
-    this.runner = (() => spawn(function(input, done) {
+    this.runner = (() => (function(input) {
         // console.log('Education runner')
+        new Promise((done, error)=>{
         const fs = require('fs');
         const path = require('path');
-        const WordTreeBuilder = require(input.dir+'/../wordTreeBuilder');
-        const currentTree = new WordTreeBuilder();
+        const WordSetHolder = require(input.dir+'/../wordSetHolder');
+        const currentTree = new WordSetHolder();
         const allPaths = [input.dir+'/../dicts'].concat(input.extraDictPaths);
         function detectPath(lang) {
           for(let testPath of allPaths) {
@@ -89,7 +89,7 @@ class EducationWorker extends require('events') {
                             if(activeReaders !==0) {
                               return;
                             };
-                            done(currentTree.serialize());
+                            done(currentTree);
                         });//on close
               } else {
                 // Parse pre-read dictionary
@@ -103,24 +103,17 @@ class EducationWorker extends require('events') {
                   if(activeReaders !== 0) {
                     return;
                   };
-                  done(currentTree.serialize());
+                  done(currentTree);
                 },0);
               } // if
           }
+        }).then(this.onDone.bind(this)).catch(this.onError.bind(this));
     }))();
 
-    this.runner.send({
+    this.runner({
       dir: __dirname,
       langs: this.languages,
       extraDictPaths: this.extraLanguagesPaths,
-    })
-    .on('message', this.onDone.bind(this))
-    
-    .on('error', this.onError.bind(this))
-    
-    .on('exit', ()=>{
-      // console.log('EducationWorker done');
-      this.runner = null;
     })
   }
 };
