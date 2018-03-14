@@ -10,13 +10,19 @@ class WordSetHolder {
     }
 
     propose(length) {
+        const result = [];
         for(let value of this.set.values()) {
             if(value.length === length) {
-                //console.log('Propose', value);
-                return value;
+                if(Math.random() < 0.10) {
+                    return value;
+                }
+                result.push(value);
             }
         } 
-        return null;
+        if(! result.length) {
+            return null;
+        }
+        return result[Math.floor(Math.random()*result.length)];
     }
     
     add(word) {
