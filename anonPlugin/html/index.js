@@ -46,7 +46,7 @@ class HTMLParser extends require('../abstractParser') {
         const $ = cheerio.load(data, {
             withDomLvl1: true,
             normalizeWhitespace: false,
-            xmlMode: true,
+            xmlMode: false,
             decodeEntities: false
         });
         $('*').each((index, node)=>{
