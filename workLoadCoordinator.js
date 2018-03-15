@@ -8,9 +8,9 @@ const MAX_WORKERS = require('os').cpus().length;
 const logging = require('./logging');
 const logger = () => { return logging.getLogger() };
 
-class PreReadDictionary {
+class PreReadDictionary extends WordSetHolder {
     constructor(lang, data = '') {
-        
+        super();
         if(data && (typeof data !== 'string')) {
             throw new Error('Data should be string!');
         }
@@ -18,7 +18,7 @@ class PreReadDictionary {
             throw new Error('Language code should be string with length of 2!');
         }
         this.lang = lang;
-        this.data = data;
+        this.set = new Set(data.split('\n'));
     }
 }
 
@@ -32,7 +32,6 @@ class WorkloadCoordinator {
         this.options = config;
         
         // Dictionaries provided by external program.
-        this._savedDicts = {};
         this.extraDictPaths = fullPathExtract(config.extraDicts || []);
         this.blackListPaths = fullPathExtract(config.blackLists || []);
         this._getTreeRequests = {};
@@ -64,7 +63,7 @@ class WorkloadCoordinator {
         if(! (preReadDictionary instanceof PreReadDictionary) ) {
             throw new Error('This function accepts only class PreReadDictionary');
         };
-        this._savedDicts[preReadDictionary.lang] = preReadDictionary;
+        this.treeCache[preReadDictionary.lang] = preReadDictionary;
     };
 
     /**
@@ -90,9 +89,7 @@ class WorkloadCoordinator {
             } 
 
             //Replace already read langs with stored ones
-            const preparedLangsArr = langArray.map((stringLang) =>{
-                return this._savedDicts[stringLang] ? this._savedDicts[stringLang] : stringLang;
-            });
+            const preparedLangsArr = langArray;
 
             let hit = 0;
             let educateLater = () => {
@@ -126,7 +123,7 @@ class WorkloadCoordinator {
                 if(file[0] !== '.') {
                     result.push(file);
                 }});
-        for(let extraLang of Object.keys(this._savedDicts)) {
+        for(let extraLang of Object.keys(this.treeCache)) {
             result.push(extraLang);
         }
         return result;

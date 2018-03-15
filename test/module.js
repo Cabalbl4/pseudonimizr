@@ -50,11 +50,13 @@ describe('Dictionary tests', function(){
         }).to.not.throw();
 
     });
+ 
     it('should accept dictionary from string', function(done) {
         const dictionary = 'notest\n';
         const html = '<html>TEST</html>';
         moduleExporter.addDictionaryFromString('DE', dictionary);
         expect(function(){
+            
             moduleExporter.process('DE','html', html).then((data) => {
                 expect(data).not.to.be.equal(html);
                 done();
