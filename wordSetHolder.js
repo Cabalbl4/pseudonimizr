@@ -55,8 +55,8 @@ class WordSetHolder {
 
 WordSetHolder.fromSerialized = (arr) => {
     const result = new WordSetHolder();
-
-    result.set = new Set(arr);
+    result.set = new Set();
+    arr.forEach((v) => result.set.add(v.toUpperCase()));
     logger().log('Set deserialized. Contains words:', result.set.size);
     return result;
 };
