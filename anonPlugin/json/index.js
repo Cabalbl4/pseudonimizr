@@ -2,18 +2,18 @@
 
 const sensetiveFieldSet =
 [
-    'pin',
-    'salt',
-    'password',
-    'acctNo',
+    ()=>/pin/gi,
+    ()=>/login/gi,
+    ()=>/salt/gi,
+    ()=>/pass/gi,
+    ()=>/acct/gi,
+    ()=>/account/gi,
     ()=>/otp/gi,
     ()=>/id/gi,
     ()=>/iban/gi,
-    // /name/gi,
     'senderName',
     'payeePayerName',
     'holderName',
-    // ()=>/purpose/gi,
 ];
 
 function checkSensetive(what) {
