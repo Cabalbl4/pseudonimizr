@@ -52,6 +52,9 @@ class AnonimizationWorker extends require('events') {
                     case input.MODES.HBCI:
                         plugin = new (require(input.dir + '/../anonPlugin/hbci'))(rand);
                     break;
+                    case input.MODES.JSON:
+                        plugin = new (require(input.dir + '/../anonPlugin/json'))(rand);
+                    break;
                     default:
                         throw new Error('Unknown format mode: '+ mode);
                 }
@@ -84,6 +87,7 @@ AnonimizationWorker.MODES = Object.freeze({
     CSV: 'csv',
     TEXT: 'text',
     HBCI: 'hbci',
+    JSON: 'json',
 })
 
 module.exports = AnonimizationWorker;

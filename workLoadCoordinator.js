@@ -14,8 +14,8 @@ class PreReadDictionary extends WordSetHolder {
         if(data && (typeof data !== 'string')) {
             throw new Error('Data should be string!');
         }
-        if(typeof lang !== 'string' || lang.length !== 2) {
-            throw new Error('Language code should be string with length of 2!');
+        if(typeof lang !== 'string') {
+            throw new Error('Language code should be string');
         }
         this.lang = lang;
         this.set = new Set(data.split('\n'));
