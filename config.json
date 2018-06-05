@@ -1,9 +1,0 @@
-{
-    "fuzzyLevel" : 0,
-    "html_remove_script" : false,
-    "treeRandomize" : true,
-    "extraDicts" : [],
-    "server" : {
-        "port" : 7788
-    }
-}
